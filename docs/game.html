@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelime Bahçesi Oyunu</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fefefe;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color: #4caf50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 1rem;
+            gap: 1.5rem;
+        }
+        .garden {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            max-width: 600px;
+        }
+        .plant {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #fafafa;
+        }
+        .question-area {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .choices {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .choice-btn {
+            padding: 0.7rem 1.2rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background-color: #e0e0e0;
+            transition: background-color 0.2s;
+        }
+        .choice-btn:hover {
+            background-color: #ccc;
+        }
+        .choice-btn.correct {
+            background-color: #8bc34a;
+            color: white;
+        }
+        .choice-btn.wrong {
+            background-color: #e57373;
+            color: white;
+        }
+        .next-btn {
+            margin-top: 1rem;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background-color: #4caf50;
+            color: white;
+        }
+        footer {
+            background-color: #4caf50;
+            color: white;
+            text-align: center;
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Kelime Bahçesi Oyunu</h1>
+    </header>
+    <main>
+        <section class="garden" id="garden"></section>
+        <div class="question-area" id="questionArea">
+            <h2 id="question"></h2>
+            <div class="choices" id="choices"></div>
+            <button class="next-btn" id="nextBtn" style="display:none;">Sonraki</button>
+        </div>
+    </main>
+    <footer>
+        <p>Hedefiniz: Bahçenizdeki tüm bitkileri büyütün!</p>
+    </footer>
+
+    <script>
+    // Sample card data. In a real application, this could be fetched from an API or stored in localStorage.
+    const cards = [
+        { id: 1, word: "apple", translation: "elma", example: "I eat an apple every day.", stage: 1 },
+        { id: 2, word: "sun", translation: "güneş", example: "The sun is shining.", stage: 1 },
+        { id: 3, word: "book", translation: "kitap", example: "This book is interesting.", stage: 1 },
+        { id: 4, word: "city", translation: "şehir", example: "I live in a large city.", stage: 1 },
+        { id: 5, word: "dog", translation: "köpek", example: "The dog is barking.", stage: 1 },
+    ];
+
+    const stageIcons = {
+        1: "🌱", // seed
+        2: "🌿", // sprout
+        3: "🌳", // tree
+        4: "🍎", // fruit
+        5: "🌲"  // mature tree
+    };
+
+    let currentCard = null;
+    let answered = false;
+
+    const gardenEl = document.getElementById('garden');
+    const questionEl = document.getElementById('question');
+    const choicesEl = document.getElementById('choices');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function renderGarden() {
+        gardenEl.innerHTML = '';
+        cards.forEach(card => {
+            const div = document.createElement('div');
+            div.className = 'plant';
+            div.textContent = stageIcons[card.stage];
+            div.title = `${card.word} (Seviye ${card.stage})`;
+            gardenEl.appendChild(div);
+        });
+    }
+
+    function getRandomCard() {
+        // Filter due cards: for simplicity, choose cards with stage < 5
+        const dueCards = cards.filter(c => c.stage < 5);
+        return dueCards[Math.floor(Math.random() * dueCards.length)];
+    }
+
+    function showQuestion() {
+        answered = false;
+        currentCard = getRandomCard();
+        if (!currentCard) {
+            questionEl.textContent = 'Tebrikler! Tüm kelimeleri öğrendiniz.';
+            choicesEl.innerHTML = '';
+            return;
+        }
+        questionEl.textContent = `"${currentCard.word}" kelimesinin çevirisi nedir?`;
+        // generate choices: include correct translation and three random other translations
+        const translations = cards
+            .filter(c => c.id !== currentCard.id)
+            .map(c => c.translation);
+        const shuffled = translations.sort(() => 0.5 - Math.random()).slice(0, 3);
+        shuffled.push(currentCard.translation);
+        const finalChoices = shuffled.sort(() => 0.5 - Math.random());
+        choicesEl.innerHTML = '';
+        finalChoices.forEach(choice => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.textContent = choice;
+            btn.onclick = () => handleAnswer(btn, choice);
+            choicesEl.appendChild(btn);
+        });
+        nextBtn.style.display = 'none';
+    }
+
+    function handleAnswer(button, choice) {
+        if (answered) return;
+        answered = true;
+        const buttons = choicesEl.querySelectorAll('.choice-btn');
+        buttons.forEach(btn => btn.disabled = true);
+        if (choice === currentCard.translation) {
+            button.classList.add('correct');
+            // increase stage up to 5
+            currentCard.stage = Math.min(currentCard.stage + 1, 5);
+        } else {
+            button.classList.add('wrong');
+            // decrease stage but not below 1
+            currentCard.stage = Math.max(currentCard.stage - 1, 1);
+        }
+        renderGarden();
+        nextBtn.style.display = 'inline-block';
+    }
+
+    nextBtn.addEventListener('click', () => {
+        showQuestion();
+    });
+
+    // initial render
+    renderGarden();
+    showQuestion();
+    </script>
+</body>
+</html>
