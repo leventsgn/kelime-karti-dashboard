@@ -57,58 +57,186 @@
     </style>
   </head>
   <body>
-    <h1>Kelime Kartı İstatistik Panosu</h1>
-    <!-- Card grid to hold summary statistics -->
+    <h1>Kelime Bahçesi Dashboard</h1>
+
+    <!-- Settings section: allow users to choose level and daily goal -->
+    <div class="settings" style="margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+      <label for="levelSelect">Seviye:</label>
+      <select id="levelSelect" style="padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid #ccc;">
+        <option value="All">Tümü</option>
+        <option value="A1">A1</option>
+        <option value="A2">A2</option>
+        <option value="B1">B1</option>
+        <option value="B2">B2</option>
+      </select>
+      <label for="dailyGoal">Günlük Hedef:</label>
+      <input type="number" id="dailyGoal" min="1" max="100" style="width: 80px; padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid #ccc;" />
+    </div>
+
+    <!-- Statistics section -->
+    <h2>Genel İstatistikler</h2>
     <div class="card-grid" id="stats-container"></div>
 
-    <!-- Container for stage distribution chart -->
+    <!-- Charts section -->
     <div class="chart-container">
       <h2>Aşama Dağılımı</h2>
       <canvas id="distributionChart" width="400" height="200"></canvas>
     </div>
 
+    <!-- Games section -->
+    <h2>Oyunlar</h2>
+    <div class="card-grid" id="games-container"></div>
+
     <script>
-      // Generate sample card counts for five stages (1‑5)
-      function generateStageCounts() {
-        const counts = [];
-        // Generate random numbers for stages 1‑5 summing around 20 cards
-        let remaining = 20;
-        for (let i = 0; i < 4; i++) {
-          const count = Math.floor(Math.random() * (remaining + 1));
-          counts.push(count);
-          remaining -= count;
+      // Card dataset (same as game.html and memory.html). Includes levels and default stage = 1.
+      // Comprehensive vocabulary list across CEFR levels A1–B2. Matching the dataset used in other pages (80 items).
+      const initialCards = [
+        // A1 level words
+        { id: 1, word: 'apple', translation: 'elma', example: 'I eat an apple every day.', level: 'A1', stage: 1 },
+        { id: 2, word: 'sun', translation: 'güneş', example: 'The sun is shining.', level: 'A1', stage: 1 },
+        { id: 3, word: 'book', translation: 'kitap', example: 'This book is interesting.', level: 'A1', stage: 1 },
+        { id: 4, word: 'city', translation: 'şehir', example: 'I live in a large city.', level: 'A1', stage: 1 },
+        { id: 5, word: 'dog', translation: 'köpek', example: 'The dog is barking.', level: 'A1', stage: 1 },
+        { id: 6, word: 'house', translation: 'ev', example: 'My house is big.', level: 'A1', stage: 1 },
+        { id: 7, word: 'cat', translation: 'kedi', example: 'The cat is sleeping.', level: 'A1', stage: 1 },
+        { id: 8, word: 'car', translation: 'araba', example: 'I have a new car.', level: 'A1', stage: 1 },
+        { id: 9, word: 'school', translation: 'okul', example: 'She goes to school every day.', level: 'A1', stage: 1 },
+        { id: 10, word: 'water', translation: 'su', example: 'Drink some water.', level: 'A1', stage: 1 },
+        { id: 11, word: 'table', translation: 'masa', example: 'There is a book on the table.', level: 'A1', stage: 1 },
+        { id: 12, word: 'chair', translation: 'sandalye', example: 'The chair is comfortable.', level: 'A1', stage: 1 },
+        { id: 13, word: 'milk', translation: 'süt', example: 'I drink milk every morning.', level: 'A1', stage: 1 },
+        { id: 14, word: 'coffee', translation: 'kahve', example: 'She likes strong coffee.', level: 'A1', stage: 1 },
+        { id: 15, word: 'banana', translation: 'muz', example: 'Monkeys love bananas.', level: 'A1', stage: 1 },
+        { id: 16, word: 'orange', translation: 'portakal', example: 'Can I have an orange?', level: 'A1', stage: 1 },
+        // A2 level words
+        { id: 17, word: 'family', translation: 'aile', example: 'My family is very supportive.', level: 'A2', stage: 1 },
+        { id: 18, word: 'friend', translation: 'arkadaş', example: 'He is my best friend.', level: 'A2', stage: 1 },
+        { id: 19, word: 'travel', translation: 'seyahat', example: 'They love to travel.', level: 'A2', stage: 1 },
+        { id: 20, word: 'job', translation: 'iş', example: 'I start my new job tomorrow.', level: 'A2', stage: 1 },
+        { id: 21, word: 'music', translation: 'müzik', example: 'We listen to music.', level: 'A2', stage: 1 },
+        { id: 22, word: 'food', translation: 'yiyecek', example: 'The food tastes great.', level: 'A2', stage: 1 },
+        { id: 23, word: 'weather', translation: 'hava', example: 'The weather is nice today.', level: 'A2', stage: 1 },
+        { id: 24, word: 'computer', translation: 'bilgisayar', example: 'I bought a new computer.', level: 'A2', stage: 1 },
+        { id: 25, word: 'phone', translation: 'telefon', example: 'My phone is ringing.', level: 'A2', stage: 1 },
+        { id: 26, word: 'garden', translation: 'bahçe', example: 'The garden is full of flowers.', level: 'A2', stage: 1 },
+        { id: 27, word: 'restaurant', translation: 'restoran', example: 'We had dinner at a restaurant.', level: 'A2', stage: 1 },
+        { id: 28, word: 'holiday', translation: 'tatil', example: 'They went on holiday last week.', level: 'A2', stage: 1 },
+        { id: 29, word: 'supermarket', translation: 'süpermarket', example: 'I buy groceries at the supermarket.', level: 'A2', stage: 1 },
+        { id: 30, word: 'movie', translation: 'film', example: 'We watched a movie last night.', level: 'A2', stage: 1 },
+        { id: 31, word: 'sport', translation: 'spor', example: 'Football is my favourite sport.', level: 'A2', stage: 1 },
+        { id: 32, word: 'doctor', translation: 'doktor', example: 'I need to see a doctor.', level: 'A2', stage: 1 },
+        { id: 33, word: 'hospital', translation: 'hastane', example: 'She works at the hospital.', level: 'A2', stage: 1 },
+        { id: 34, word: 'library', translation: 'kütüphane', example: 'Students study at the library.', level: 'A2', stage: 1 },
+        { id: 35, word: 'hotel', translation: 'otel', example: 'We stayed at a hotel.', level: 'A2', stage: 1 },
+        { id: 36, word: 'airport', translation: 'havaalanı', example: 'He arrived at the airport.', level: 'A2', stage: 1 },
+        // B1 level words
+        { id: 37, word: 'environment', translation: 'çevre', example: 'Protecting the environment is important.', level: 'B1', stage: 1 },
+        { id: 38, word: 'culture', translation: 'kültür', example: 'The city has a rich culture.', level: 'B1', stage: 1 },
+        { id: 39, word: 'economy', translation: 'ekonomi', example: 'The economy is growing.', level: 'B1', stage: 1 },
+        { id: 40, word: 'education', translation: 'eğitim', example: 'Education opens doors.', level: 'B1', stage: 1 },
+        { id: 41, word: 'language', translation: 'dil', example: 'Language connects people.', level: 'B1', stage: 1 },
+        { id: 42, word: 'technology', translation: 'teknoloji', example: 'Technology is advancing rapidly.', level: 'B1', stage: 1 },
+        { id: 43, word: 'health', translation: 'sağlık', example: 'Health is wealth.', level: 'B1', stage: 1 },
+        { id: 44, word: 'community', translation: 'toplum', example: 'The community is supportive.', level: 'B1', stage: 1 },
+        { id: 45, word: 'energy', translation: 'enerji', example: 'Solar energy is renewable.', level: 'B1', stage: 1 },
+        { id: 46, word: 'science', translation: 'bilim', example: 'Science explains how things work.', level: 'B1', stage: 1 },
+        { id: 47, word: 'history', translation: 'tarih', example: 'History teaches us about the past.', level: 'B1', stage: 1 },
+        { id: 48, word: 'business', translation: 'iş dünyası', example: 'She studies business.', level: 'B1', stage: 1 },
+        { id: 49, word: 'project', translation: 'proje', example: 'We are working on a new project.', level: 'B1', stage: 1 },
+        { id: 50, word: 'research', translation: 'araştırma', example: 'He is doing research.', level: 'B1', stage: 1 },
+        { id: 51, word: 'communication', translation: 'iletişim', example: 'Communication is key.', level: 'B1', stage: 1 },
+        { id: 52, word: 'opinion', translation: 'görüş', example: 'Everyone has an opinion.', level: 'B1', stage: 1 },
+        // B2 level words
+        { id: 53, word: 'government', translation: 'hükümet', example: 'The government passed a new law.', level: 'B2', stage: 1 },
+        { id: 54, word: 'opportunity', translation: 'fırsat', example: 'Education provides opportunity.', level: 'B2', stage: 1 },
+        { id: 55, word: 'relationship', translation: 'ilişki', example: 'Trust is important in a relationship.', level: 'B2', stage: 1 },
+        { id: 56, word: 'experience', translation: 'deneyim', example: 'Work experience matters.', level: 'B2', stage: 1 },
+        { id: 57, word: 'development', translation: 'gelişim', example: 'Personal development is essential.', level: 'B2', stage: 1 },
+        { id: 58, word: 'psychology', translation: 'psikoloji', example: 'She studies psychology.', level: 'B2', stage: 1 },
+        { id: 59, word: 'philosophy', translation: 'felsefe', example: 'Philosophy questions existence.', level: 'B2', stage: 1 },
+        { id: 60, word: 'architecture', translation: 'mimari', example: 'Modern architecture is fascinating.', level: 'B2', stage: 1 },
+        { id: 61, word: 'democracy', translation: 'demokrasi', example: 'Democracy encourages participation.', level: 'B2', stage: 1 },
+        { id: 62, word: 'entrepreneur', translation: 'girişimci', example: 'She is a successful entrepreneur.', level: 'B2', stage: 1 },
+        { id: 63, word: 'globalization', translation: 'küreselleşme', example: 'Globalization connects economies.', level: 'B2', stage: 1 },
+        { id: 64, word: 'sustainability', translation: 'sürdürülebilirlik', example: 'Sustainability is crucial for our planet.', level: 'B2', stage: 1 },
+        { id: 65, word: 'innovation', translation: 'yenilik', example: 'Innovation drives progress.', level: 'B2', stage: 1 },
+        { id: 66, word: 'negotiation', translation: 'müzakere', example: 'They reached an agreement after negotiation.', level: 'B2', stage: 1 },
+        { id: 67, word: 'hypothesis', translation: 'hipotez', example: 'The scientist tested the hypothesis.', level: 'B2', stage: 1 },
+        { id: 68, word: 'analysis', translation: 'analiz', example: 'Data analysis is important.', level: 'B2', stage: 1 },
+        { id: 69, word: 'strategy', translation: 'strateji', example: 'They discussed the marketing strategy.', level: 'B2', stage: 1 },
+        { id: 70, word: 'ethics', translation: 'etik', example: 'Ethics guide our actions.', level: 'B2', stage: 1 },
+        { id: 71, word: 'biodiversity', translation: 'biyoçeşitlilik', example: 'Biodiversity is important for ecosystems.', level: 'B2', stage: 1 },
+        { id: 72, word: 'climate', translation: 'iklim', example: 'The climate is changing.', level: 'B2', stage: 1 },
+        { id: 73, word: 'biology', translation: 'biyoloji', example: 'Biology studies living organisms.', level: 'B2', stage: 1 },
+        { id: 74, word: 'chemistry', translation: 'kimya', example: 'Chemistry experiments can be fun.', level: 'B2', stage: 1 },
+        { id: 75, word: 'engineering', translation: 'mühendislik', example: 'Engineering solves practical problems.', level: 'B2', stage: 1 },
+        { id: 76, word: 'mathematics', translation: 'matematik', example: 'Mathematics is the language of science.', level: 'B2', stage: 1 },
+        { id: 77, word: 'literature', translation: 'edebiyat', example: 'She loves English literature.', level: 'B2', stage: 1 },
+        { id: 78, word: 'geography', translation: 'coğrafya', example: 'Geography studies the Earth.', level: 'B2', stage: 1 },
+        { id: 79, word: 'statistics', translation: 'istatistik', example: 'Statistics helps us understand data.', level: 'B2', stage: 1 },
+        { id: 80, word: 'automation', translation: 'otomasyon', example: 'Automation improves efficiency.', level: 'B2', stage: 1 },
+      ];
+
+      function loadProgress() {
+        const saved = localStorage.getItem('wordGardenProgress');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            return initialCards.map(card => {
+              const savedCard = parsed.find(c => c.id === card.id);
+              return savedCard ? { ...card, stage: savedCard.stage } : { ...card };
+            });
+          } catch (e) {
+            console.error('Error parsing saved progress', e);
+          }
         }
-        counts.push(remaining);
-        // Shuffle counts for variety
-        return counts.sort(() => Math.random() - 0.5);
+        return initialCards.map(card => ({ ...card }));
       }
 
-      // Compute high‑level statistics from stage counts
-      function computeStats(stageCounts) {
-        const totalCards = stageCounts.reduce((a, b) => a + b, 0);
-        const newCards = stageCounts[0];
-        const learningCards = stageCounts.slice(1, 4).reduce((a, b) => a + b, 0);
-        const matureCards = stageCounts[4] || 0;
-        // Random realistic values for demonstration
-        const studiedToday = Math.floor(Math.random() * 5);
-        const cardsDueToday = Math.floor(Math.random() * 5);
-        const accuracy = Math.round((Math.random() * 40 + 50) * 10) / 10; // 50–90%
-        return {
-          totalCards,
-          studiedToday,
-          accuracy,
-          cardsDueToday,
-          newCards,
-          learningCards,
-          matureCards,
-        };
+      // Load user settings (level and daily goal) from localStorage. If none are saved, return defaults.
+      function loadSettings() {
+        const saved = localStorage.getItem('wordGardenSettings');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            // Ensure both level and dailyGoal exist
+            return {
+              level: parsed.level || 'All',
+              dailyGoal: parsed.dailyGoal || 10,
+            };
+          } catch (e) {
+            console.error('Error parsing settings', e);
+          }
+        }
+        return { level: 'All', dailyGoal: 10 };
       }
 
-      // Populate the dashboard with statistics and chart
-      function renderDashboard() {
-        const stageCounts = generateStageCounts();
-        const stats = computeStats(stageCounts);
-        // Display summary stats in cards
+      // Save user settings to localStorage
+      function saveSettings(settings) {
+        localStorage.setItem('wordGardenSettings', JSON.stringify(settings));
+      }
+
+      function computeStatistics(cards) {
+        // Filter cards based on the selected level from settings
+        const settings = loadSettings();
+        const filtered = cards.filter(c => settings.level === 'All' || c.level === settings.level);
+        const totalCards = filtered.length;
+        const learnedCards = filtered.filter(c => c.stage >= 3).length;
+        const newCards = filtered.filter(c => c.stage === 1).length;
+        const learningCards = filtered.filter(c => c.stage > 1 && c.stage < 5).length;
+        const matureCards = filtered.filter(c => c.stage === 5).length;
+        // Cards due today: all cards not yet mature
+        const cardsDueToday = filtered.filter(c => c.stage < 5).length;
+        // Accuracy as ratio of learned cards among total
+        const accuracy = totalCards ? Math.round((learnedCards / totalCards) * 1000) / 10 : 0;
+        // Placeholder for studied today
+        const studiedToday = 0;
+        return { totalCards, studiedToday, accuracy, cardsDueToday, newCards, learningCards, matureCards };
+      }
+
+      function renderStatistics() {
+        const cards = loadProgress();
+        const stats = computeStatistics(cards);
         const statsContainer = document.getElementById('stats-container');
         statsContainer.innerHTML = '';
         const labels = {
@@ -120,26 +248,30 @@
           learningCards: 'Öğrenme Kartları',
           matureCards: 'Olgun Kartlar',
         };
-        Object.keys(stats).forEach((key) => {
-          const card = document.createElement('div');
-          card.className = 'card';
+        Object.keys(stats).forEach(key => {
+          const cardEl = document.createElement('div');
+          cardEl.className = 'card';
           const title = document.createElement('p');
           title.className = 'card-title';
           title.textContent = labels[key] || key;
           const value = document.createElement('p');
           value.className = 'card-value';
           value.textContent = stats[key];
-          card.appendChild(title);
-          card.appendChild(value);
-          statsContainer.appendChild(card);
+          cardEl.appendChild(title);
+          cardEl.appendChild(value);
+          statsContainer.appendChild(cardEl);
         });
-
         // Draw stage distribution chart
+        const stageCounts = [0, 0, 0, 0, 0];
+        // Only consider cards matching the selected level when computing the distribution
+        const settings = loadSettings();
+        const filteredCards = cards.filter(c => settings.level === 'All' || c.level === settings.level);
+        filteredCards.forEach(c => {
+          stageCounts[c.stage - 1]++;
+        });
         const ctx = document.getElementById('distributionChart').getContext('2d');
         const existingChart = Chart.getChart('distributionChart');
-        if (existingChart) {
-          existingChart.destroy();
-        }
+        if (existingChart) existingChart.destroy();
         const stageLabels = ['Aşama 1', 'Aşama 2', 'Aşama 3', 'Aşama 4', 'Aşama 5'];
         new Chart(ctx, {
           type: 'bar',
@@ -149,27 +281,109 @@
               {
                 label: 'Kart Sayısı',
                 data: stageCounts,
-                backgroundColor: '#3b82f6',
-                borderColor: '#2563eb',
+                backgroundColor: '#f97316',
+                borderColor: '#ea580c',
                 borderWidth: 1,
               },
             ],
           },
           options: {
             responsive: true,
-            plugins: {
-              legend: { display: false },
-            },
-            scales: {
-              y: { beginAtZero: true },
-            },
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } },
           },
         });
       }
 
-      // Render dashboard on load and refresh every 30 seconds
-      renderDashboard();
-      setInterval(renderDashboard, 30000);
+      function renderGames() {
+        const games = [
+          {
+            title: 'Çeviri & Harf Oyunu',
+            description: 'Çeviri soruları ve harf dizme göreviyle bahçeni büyüt',
+            link: 'game.html'
+          },
+          {
+            title: 'Hafıza Eşleştirme',
+            description: 'İngilizce ve Türkçe kartları eşleştirerek eğlen',
+            link: 'memory.html'
+          },
+          {
+            title: 'Resimli Oyun',
+            description: 'Görselleri kullanarak doğru kelimeyi bul',
+            link: 'picture.html'
+          },
+          {
+            title: 'Hatırlatıcı Oyun',
+            description: 'Öğrendiğin kelimeleri hızlıca tekrar et',
+            link: 'reminder.html'
+          }
+        ];
+        const gamesContainer = document.getElementById('games-container');
+        gamesContainer.innerHTML = '';
+        games.forEach(game => {
+          const cardEl = document.createElement('div');
+          cardEl.className = 'card';
+          const title = document.createElement('p');
+          title.className = 'card-title';
+          title.style.fontWeight = '700';
+          title.textContent = game.title;
+          const desc = document.createElement('p');
+          desc.style.fontSize = '0.9rem';
+          desc.style.marginTop = '0.5rem';
+          desc.textContent = game.description;
+          const linkBtn = document.createElement('a');
+          linkBtn.href = game.link;
+          linkBtn.textContent = 'Başla';
+          linkBtn.style.display = 'inline-block';
+          linkBtn.style.marginTop = '0.8rem';
+          linkBtn.style.padding = '0.5rem 0.8rem';
+          linkBtn.style.backgroundColor = '#10b981';
+          linkBtn.style.color = 'white';
+          linkBtn.style.borderRadius = '6px';
+          linkBtn.style.textDecoration = 'none';
+          // Disable if link is '#'
+          if (game.link === '#') {
+            linkBtn.style.backgroundColor = '#9ca3af';
+            linkBtn.style.cursor = 'not-allowed';
+            linkBtn.onclick = (e) => e.preventDefault();
+          }
+          cardEl.appendChild(title);
+          cardEl.appendChild(desc);
+          cardEl.appendChild(linkBtn);
+          gamesContainer.appendChild(cardEl);
+        });
+      }
+
+      // Initial rendering
+      renderStatistics();
+      renderGames();
+      // Update statistics periodically
+      setInterval(renderStatistics, 10000);
+
+      // Initialise settings controls with saved values and attach change handlers
+      (function initSettingsControls() {
+        const levelSelect = document.getElementById('levelSelect');
+        const dailyGoalInput = document.getElementById('dailyGoal');
+        const settings = loadSettings();
+        // Set initial values
+        levelSelect.value = settings.level;
+        dailyGoalInput.value = settings.dailyGoal;
+        // When the level selection changes, update settings and refresh statistics
+        levelSelect.addEventListener('change', () => {
+          const newSettings = { ...settings, level: levelSelect.value };
+          saveSettings(newSettings);
+          // update the in-memory settings object
+          settings.level = levelSelect.value;
+          renderStatistics();
+        });
+        // When the daily goal changes, update settings
+        dailyGoalInput.addEventListener('change', () => {
+          const value = parseInt(dailyGoalInput.value, 10) || 1;
+          const newSettings = { ...settings, dailyGoal: value };
+          saveSettings(newSettings);
+          settings.dailyGoal = value;
+        });
+      })();
     </script>
   </body>
 </html>
