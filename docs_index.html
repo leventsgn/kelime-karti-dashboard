@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kelime Kartı Dashboards</title>
+    <!-- Chart.js via CDN for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      /* Basic reset and typography */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: #f8fafc;
+        color: #1f2937;
+        padding: 2rem;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+      }
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+      /* Card grid layout */
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+      }
+      .card {
+        background-color: #ffffff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+        padding: 1rem;
+      }
+      .card-title {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+      }
+      .card-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+      .chart-container {
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Kelime Kartı İstatistik Panosu</h1>
+    <!-- Card grid to hold summary statistics -->
+    <div class="card-grid" id="stats-container"></div>
+
+    <!-- Container for stage distribution chart -->
+    <div class="chart-container">
+      <h2>Aşama Dağılımı</h2>
+      <canvas id="distributionChart" width="400" height="200"></canvas>
+    </div>
+
+    <script>
+      // Generate sample card counts for five stages (1‑5)
+      function generateStageCounts() {
+        const counts = [];
+        // Generate random numbers for stages 1‑5 summing around 20 cards
+        let remaining = 20;
+        for (let i = 0; i < 4; i++) {
+          const count = Math.floor(Math.random() * (remaining + 1));
+          counts.push(count);
+          remaining -= count;
+        }
+        counts.push(remaining);
+        // Shuffle counts for variety
+        return counts.sort(() => Math.random() - 0.5);
+      }
+
+      // Compute high‑level statistics from stage counts
+      function computeStats(stageCounts) {
+        const totalCards = stageCounts.reduce((a, b) => a + b, 0);
+        const newCards = stageCounts[0];
+        const learningCards = stageCounts.slice(1, 4).reduce((a, b) => a + b, 0);
+        const matureCards = stageCounts[4] || 0;
+        // Random realistic values for demonstration
+        const studiedToday = Math.floor(Math.random() * 5);
+        const cardsDueToday = Math.floor(Math.random() * 5);
+        const accuracy = Math.round((Math.random() * 40 + 50) * 10) / 10; // 50–90%
+        return {
+          totalCards,
+          studiedToday,
+          accuracy,
+          cardsDueToday,
+          newCards,
+          learningCards,
+          matureCards,
+        };
+      }
+
+      // Populate the dashboard with statistics and chart
+      function renderDashboard() {
+        const stageCounts = generateStageCounts();
+        const stats = computeStats(stageCounts);
+        // Display summary stats in cards
+        const statsContainer = document.getElementById('stats-container');
+        statsContainer.innerHTML = '';
+        const labels = {
+          totalCards: 'Toplam Kart',
+          studiedToday: 'Bugün Çalışılan',
+          accuracy: 'Doğruluk (%)',
+          cardsDueToday: 'Bekleyen Kart',
+          newCards: 'Yeni Kart',
+          learningCards: 'Öğrenme Kartları',
+          matureCards: 'Olgun Kartlar',
+        };
+        Object.keys(stats).forEach((key) => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          const title = document.createElement('p');
+          title.className = 'card-title';
+          title.textContent = labels[key] || key;
+          const value = document.createElement('p');
+          value.className = 'card-value';
+          value.textContent = stats[key];
+          card.appendChild(title);
+          card.appendChild(value);
+          statsContainer.appendChild(card);
+        });
+
+        // Draw stage distribution chart
+        const ctx = document.getElementById('distributionChart').getContext('2d');
+        const existingChart = Chart.getChart('distributionChart');
+        if (existingChart) {
+          existingChart.destroy();
+        }
+        const stageLabels = ['Aşama 1', 'Aşama 2', 'Aşama 3', 'Aşama 4', 'Aşama 5'];
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: stageLabels,
+            datasets: [
+              {
+                label: 'Kart Sayısı',
+                data: stageCounts,
+                backgroundColor: '#3b82f6',
+                borderColor: '#2563eb',
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+            },
+            scales: {
+              y: { beginAtZero: true },
+            },
+          },
+        });
+      }
+
+      // Render dashboard on load and refresh every 30 seconds
+      renderDashboard();
+      setInterval(renderDashboard, 30000);
+    </script>
+  </body>
+</html>
