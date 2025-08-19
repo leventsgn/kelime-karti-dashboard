@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelime Bahçesi Oyunu</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hatırlatıcı Oyunu</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -16,7 +16,7 @@
             min-height: 100vh;
         }
         header {
-            background-color: #4caf50;
+            background-color: #ec4899;
             color: white;
             padding: 1rem;
             text-align: center;
@@ -28,130 +28,77 @@
             align-items: center;
             justify-content: flex-start;
             padding: 1rem;
-            gap: 1.5rem;
         }
-        .garden {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            justify-content: center;
-            max-width: 600px;
-        }
-        .plant {
-            width: 70px;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            background-color: #fafafa;
-        }
-        .question-area {
+        .card-display {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 500px;
             text-align: center;
             margin-top: 1rem;
         }
-        .choices {
+        .buttons {
+            margin-top: 1rem;
             display: flex;
-            flex-wrap: wrap;
             justify-content: center;
             gap: 1rem;
+        }
+        .action-btn {
+            padding: 0.7rem 1.4rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+        }
+        .remember {
+            background-color: #10b981;
+        }
+        .forget {
+            background-color: #f87171;
+        }
+        .show-btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
             margin-top: 1rem;
         }
-        .choice-btn {
-            padding: 0.7rem 1.2rem;
+        .return-btn {
+            margin-top: 2rem;
+            padding: 0.6rem 1.2rem;
             font-size: 1rem;
             border-radius: 8px;
             border: none;
+            background-color: #ec4899;
+            color: white;
             cursor: pointer;
-            background-color: #e0e0e0;
-            transition: background-color 0.2s;
-        }
-        .choice-btn:hover {
-            background-color: #ccc;
-        }
-        .choice-btn.correct {
-            background-color: #8bc34a;
-            color: white;
-        }
-        .choice-btn.wrong {
-            background-color: #e57373;
-            color: white;
-        }
-        .letter-btn {
-            padding: 0.7rem 1rem;
-            font-size: 1rem;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            background-color: #e0e0e0;
-            transition: background-color 0.2s;
-        }
-        .letter-btn:hover {
-            background-color: #ccc;
-        }
-        .letter-btn.used {
-            background-color: #bdbdbd;
-            cursor: default;
-        }
-        .answer-area {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-        .answer-slot {
-            width: 40px;
-            height: 40px;
-            border: 1px dashed #ccc;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            background-color: #fafafa;
-        }
-        .next-btn {
-            margin-top: 1rem;
-            padding: 0.8rem 1.5rem;
-            font-size: 1rem;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            background-color: #4caf50;
-            color: white;
-        }
-        footer {
-            background-color: #4caf50;
-            color: white;
-            text-align: center;
-            padding: 0.5rem;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Kelime Bahçesi Oyunu</h1>
+        <h1>Hatırlatıcı Oyunu</h1>
     </header>
     <main>
-        <section class="garden" id="garden"></section>
-        <div class="question-area" id="questionArea">
-            <h2 id="question"></h2>
-            <div class="choices" id="choices"></div>
-            <button class="next-btn" id="nextBtn" style="display:none;">Sonraki</button>
+        <p>Kelimeleri hızlıca gözden geçirmek için çeviriyi gör ve hatırladığını işaretle.</p>
+        <div id="cardContainer" class="card-display" style="display:none;"></div>
+        <button id="showBtn" class="show-btn" style="display:none;">Çeviriyi Göster</button>
+        <div class="buttons" id="choiceButtons" style="display:none;">
+            <button id="rememberBtn" class="action-btn remember">Hatırladım</button>
+            <button id="forgetBtn" class="action-btn forget">Unuttum</button>
         </div>
+        <button class="return-btn" onclick="goHome()">Ana Sayfaya Dön</button>
     </main>
-    <footer>
-        <p>Hedefiniz: Bahçenizdeki tüm bitkileri büyütün!</p>
-    </footer>
 
     <script>
-    // Comprehensive card data with CEFR levels. Each card has an ID, English word, Turkish translation,
-    // example sentence and CEFR level. All cards start at stage 1 by default.
+    // Expanded vocabulary list as in other pages
     const initialCards = [
-        // A1 level words
+        // A1
         { id: 1, word: 'apple', translation: 'elma', example: 'I eat an apple every day.', level: 'A1', stage: 1 },
         { id: 2, word: 'sun', translation: 'güneş', example: 'The sun is shining.', level: 'A1', stage: 1 },
         { id: 3, word: 'book', translation: 'kitap', example: 'This book is interesting.', level: 'A1', stage: 1 },
@@ -168,7 +115,7 @@
         { id: 14, word: 'coffee', translation: 'kahve', example: 'She likes strong coffee.', level: 'A1', stage: 1 },
         { id: 15, word: 'banana', translation: 'muz', example: 'Monkeys love bananas.', level: 'A1', stage: 1 },
         { id: 16, word: 'orange', translation: 'portakal', example: 'Can I have an orange?', level: 'A1', stage: 1 },
-        // A2 level words
+        // A2
         { id: 17, word: 'family', translation: 'aile', example: 'My family is very supportive.', level: 'A2', stage: 1 },
         { id: 18, word: 'friend', translation: 'arkadaş', example: 'He is my best friend.', level: 'A2', stage: 1 },
         { id: 19, word: 'travel', translation: 'seyahat', example: 'They love to travel.', level: 'A2', stage: 1 },
@@ -189,7 +136,7 @@
         { id: 34, word: 'library', translation: 'kütüphane', example: 'Students study at the library.', level: 'A2', stage: 1 },
         { id: 35, word: 'hotel', translation: 'otel', example: 'We stayed at a hotel.', level: 'A2', stage: 1 },
         { id: 36, word: 'airport', translation: 'havaalanı', example: 'He arrived at the airport.', level: 'A2', stage: 1 },
-        // B1 level words
+        // B1
         { id: 37, word: 'environment', translation: 'çevre', example: 'Protecting the environment is important.', level: 'B1', stage: 1 },
         { id: 38, word: 'culture', translation: 'kültür', example: 'The city has a rich culture.', level: 'B1', stage: 1 },
         { id: 39, word: 'economy', translation: 'ekonomi', example: 'The economy is growing.', level: 'B1', stage: 1 },
@@ -206,7 +153,7 @@
         { id: 50, word: 'research', translation: 'araştırma', example: 'He is doing research.', level: 'B1', stage: 1 },
         { id: 51, word: 'communication', translation: 'iletişim', example: 'Communication is key.', level: 'B1', stage: 1 },
         { id: 52, word: 'opinion', translation: 'görüş', example: 'Everyone has an opinion.', level: 'B1', stage: 1 },
-        // B2 level words
+        // B2
         { id: 53, word: 'government', translation: 'hükümet', example: 'The government passed a new law.', level: 'B2', stage: 1 },
         { id: 54, word: 'opportunity', translation: 'fırsat', example: 'Education provides opportunity.', level: 'B2', stage: 1 },
         { id: 55, word: 'relationship', translation: 'ilişki', example: 'Trust is important in a relationship.', level: 'B2', stage: 1 },
@@ -237,13 +184,14 @@
         { id: 80, word: 'automation', translation: 'otomasyon', example: 'Automation improves efficiency.', level: 'B2', stage: 1 },
     ];
 
-    // Load progress from localStorage or initialise with default stages
+    /**
+     * Load saved card progress from localStorage. If none exists, return the initial list.
+     */
     function loadProgress() {
         const saved = localStorage.getItem('wordGardenProgress');
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                // Merge saved stages into initial cards
                 return initialCards.map(card => {
                     const savedCard = parsed.find(c => c.id === card.id);
                     return savedCard ? { ...card, stage: savedCard.stage } : { ...card };
@@ -255,17 +203,15 @@
         return initialCards.map(card => ({ ...card }));
     }
 
-    // Save current card stages to localStorage
-    function saveProgress() {
+    /**
+     * Persist card stages to localStorage.
+     */
+    function saveProgress(cards) {
         localStorage.setItem('wordGardenProgress', JSON.stringify(cards));
     }
 
-    // Global cards array populated on load
-    let cards = loadProgress();
-
     /**
-     * Load user settings (level selection and daily goal) from localStorage.
-     * Returns an object with properties `level` and `dailyGoal`.
+     * Load user settings (level and daily goal) from localStorage.
      */
     function loadSettings() {
         const saved = localStorage.getItem('wordGardenSettings');
@@ -279,235 +225,101 @@
         return { level: 'All', dailyGoal: 10 };
     }
 
-    // Icons representing plant growth stages
-    const stageIcons = {
-        1: "🌱", // seed
-        2: "🌿", // sprout
-        3: "🌳", // tree
-        4: "🍎", // fruit
-        5: "🌲"  // mature tree
-    };
-
+    // Global state
+    let cards = loadProgress();
+    let reviewCards = [];
+    let currentIndex = 0;
     let currentCard = null;
-    let answered = false;
-    let userInput = [];
-    let targetWord = '';
 
-    const gardenEl = document.getElementById('garden');
-    const questionEl = document.getElementById('question');
-    const choicesEl = document.getElementById('choices');
-    const nextBtn = document.getElementById('nextBtn');
+    const cardContainer = document.getElementById('cardContainer');
+    const showBtn = document.getElementById('showBtn');
+    const choiceButtons = document.getElementById('choiceButtons');
+    const rememberBtn = document.getElementById('rememberBtn');
+    const forgetBtn = document.getElementById('forgetBtn');
 
     /**
-     * Render garden icons based on card stages.
+     * Initialize the review session: pick cards due for review based on settings and stage.
      */
-    function renderGarden() {
-        gardenEl.innerHTML = '';
-        cards.forEach(card => {
-            const div = document.createElement('div');
-            div.className = 'plant';
-            div.textContent = stageIcons[card.stage];
-            div.title = `${card.word} (Seviye ${card.stage})`;
-            gardenEl.appendChild(div);
-        });
-    }
-
-    /**
-     * Choose a random card that hasn't reached the maximum stage.
-     */
-    function getRandomCard() {
+    function startReview() {
         const settings = loadSettings();
-        // Filter cards by stage and selected level
-        const dueCards = cards.filter(c => c.stage < 5 && (settings.level === 'All' || c.level === settings.level));
-        if (dueCards.length === 0) return null;
-        return dueCards[Math.floor(Math.random() * dueCards.length)];
-    }
-
-    /**
-     * Utility to shuffle array elements (Fisher-Yates).
-     */
-    function shuffleArray(array) {
-        const arr = array.slice();
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
+        reviewCards = cards.filter(c => c.stage < 5 && (settings.level === 'All' || c.level === settings.level));
+        currentIndex = 0;
+        if (reviewCards.length === 0) {
+            cardContainer.style.display = 'block';
+            cardContainer.textContent = 'Tüm kelimeleri gözden geçirdiniz veya seçtiğiniz seviyede kart yok!';
+            showBtn.style.display = 'none';
+            choiceButtons.style.display = 'none';
+        } else {
+            showNextCard();
         }
-        return arr;
     }
 
     /**
-     * Show question based on current card stage.
-     * Stage 1: multiple choice translation (English -> Turkish)
-     * Stage 2: unscramble the translation
-     * Stage 3: unscramble the English word
-     * Stage 4+: review message (no question)
+     * Display the next card for review (English word only initially).
      */
-    function showQuestion() {
-        answered = false;
-        userInput = [];
-        currentCard = getRandomCard();
-        // Reset UI areas
-        choicesEl.innerHTML = '';
-        questionEl.innerHTML = '';
-        nextBtn.style.display = 'none';
-        removeAnswerArea();
-
-        if (!currentCard) {
-            questionEl.textContent = 'Tebrikler! Tüm kelimeleri öğrendiniz.';
+    function showNextCard() {
+        if (currentIndex >= reviewCards.length) {
+            cardContainer.style.display = 'block';
+            cardContainer.textContent = 'Tebrikler! Tüm kartları gözden geçirdiniz.';
+            showBtn.style.display = 'none';
+            choiceButtons.style.display = 'none';
+            saveProgress(cards);
             return;
         }
-
-        // Determine question type based on stage
-        if (currentCard.stage === 1) {
-            setupTranslationQuestion();
-        } else if (currentCard.stage === 2) {
-            setupUnscrambleQuestion(currentCard.translation, 'Türkçe karşılığını harfleri sıraya koyarak oluşturun');
-        } else if (currentCard.stage === 3) {
-            setupUnscrambleQuestion(currentCard.word, 'İngilizce kelimeyi harfleri sıraya koyarak oluşturun');
-        } else {
-            // Stage 4 and 5: simple acknowledgement
-            questionEl.textContent = `"${currentCard.word}" kelimesi bahçenizde olgunlaşmış durumda.`;
-            nextBtn.style.display = 'inline-block';
-        }
+        currentCard = reviewCards[currentIndex];
+        // Reset UI
+        cardContainer.style.display = 'block';
+        cardContainer.innerHTML = `<strong>${currentCard.word}</strong>`;
+        showBtn.style.display = 'inline-block';
+        choiceButtons.style.display = 'none';
     }
 
     /**
-     * Create a multiple-choice translation question.
+     * Reveal the translation for the current card and show remember/forget buttons.
      */
-    function setupTranslationQuestion() {
-        questionEl.textContent = `"${currentCard.word}" kelimesinin çevirisi nedir?`;
-        // include correct translation and three random others
-        const translations = cards.filter(c => c.id !== currentCard.id).map(c => c.translation);
-        const options = shuffleArray(translations).slice(0, 3);
-        options.push(currentCard.translation);
-        const finalChoices = shuffleArray(options);
-        finalChoices.forEach(choice => {
-            const btn = document.createElement('button');
-            btn.className = 'choice-btn';
-            btn.textContent = choice;
-            btn.onclick = () => handleMultipleChoice(btn, choice);
-            choicesEl.appendChild(btn);
-        });
+    function revealTranslation() {
+        if (!currentCard) return;
+        cardContainer.innerHTML = `<strong>${currentCard.word}</strong> — ${currentCard.translation}`;
+        showBtn.style.display = 'none';
+        choiceButtons.style.display = 'flex';
     }
 
     /**
-     * Handle answer selection for multiple choice.
+     * Handle "Remembered" action: increase stage and proceed.
      */
-    function handleMultipleChoice(button, choice) {
-        if (answered) return;
-        answered = true;
-        const buttons = choicesEl.querySelectorAll('.choice-btn');
-        buttons.forEach(btn => btn.disabled = true);
-        if (choice === currentCard.translation) {
-            button.classList.add('correct');
-            currentCard.stage = Math.min(currentCard.stage + 1, 5);
-        } else {
-            button.classList.add('wrong');
-            currentCard.stage = Math.max(currentCard.stage - 1, 1);
-        }
-        renderGarden();
-        // Persist updated stage
-        saveProgress();
-        nextBtn.style.display = 'inline-block';
+    function handleRemember() {
+        if (!currentCard) return;
+        currentCard.stage = Math.min(currentCard.stage + 1, 5);
+        // Update global cards array
+        const idx = cards.findIndex(c => c.id === currentCard.id);
+        if (idx >= 0) cards[idx].stage = currentCard.stage;
+        currentIndex++;
+        showNextCard();
     }
 
     /**
-     * Create an unscramble question for the given target word.
-     * @param {string} word - the word to unscramble
-     * @param {string} prompt - the prompt to display to the user
+     * Handle "Forgot" action: reset stage to 1 and proceed.
      */
-    function setupUnscrambleQuestion(word, prompt) {
-        targetWord = word;
-        questionEl.textContent = prompt;
-        const letters = shuffleArray(word.split(''));
-        // Create answer area slots
-        const answerArea = document.createElement('div');
-        answerArea.className = 'answer-area';
-        answerArea.id = 'answerArea';
-        for (let i = 0; i < word.length; i++) {
-            const slot = document.createElement('div');
-            slot.className = 'answer-slot';
-            slot.textContent = '';
-            answerArea.appendChild(slot);
-        }
-        choicesEl.parentNode.insertBefore(answerArea, nextBtn);
-        // Create letter buttons
-        letters.forEach(letter => {
-            const btn = document.createElement('button');
-            btn.className = 'letter-btn';
-            btn.textContent = letter;
-            btn.onclick = () => handleLetterClick(btn, letter);
-            choicesEl.appendChild(btn);
-        });
+    function handleForget() {
+        if (!currentCard) return;
+        currentCard.stage = 1;
+        const idx = cards.findIndex(c => c.id === currentCard.id);
+        if (idx >= 0) cards[idx].stage = currentCard.stage;
+        currentIndex++;
+        showNextCard();
     }
 
-    /**
-     * Remove existing answer area if present.
-     */
-    function removeAnswerArea() {
-        const existing = document.getElementById('answerArea');
-        if (existing) {
-            existing.parentNode.removeChild(existing);
-        }
+    // Attach button handlers
+    showBtn.addEventListener('click', revealTranslation);
+    rememberBtn.addEventListener('click', handleRemember);
+    forgetBtn.addEventListener('click', handleForget);
+
+    function goHome() {
+        window.location.href = 'index.html';
     }
 
-    /**
-     * Handle letter selection for unscramble questions.
-     */
-    function handleLetterClick(button, letter) {
-        if (answered || button.classList.contains('used')) return;
-        button.classList.add('used');
-        userInput.push(letter);
-        // Fill next empty slot
-        const slots = document.querySelectorAll('.answer-slot');
-        for (const slot of slots) {
-            if (slot.textContent === '') {
-                slot.textContent = letter;
-                break;
-            }
-        }
-        // Check if answer complete
-        if (userInput.length === targetWord.length) {
-            checkUnscrambleAnswer();
-        }
-    }
-
-    /**
-     * Check unscramble answer and update stage.
-     */
-    function checkUnscrambleAnswer() {
-        answered = true;
-        const correct = userInput.join('') === targetWord;
-        const slots = document.querySelectorAll('.answer-slot');
-        // Highlight slots accordingly
-        if (correct) {
-            slots.forEach(slot => {
-                slot.style.backgroundColor = '#c8e6c9';
-            });
-            currentCard.stage = Math.min(currentCard.stage + 1, 5);
-        } else {
-            slots.forEach(slot => {
-                slot.style.backgroundColor = '#ffcdd2';
-            });
-            currentCard.stage = Math.max(currentCard.stage - 1, 1);
-        }
-        // disable remaining buttons
-        const letterButtons = choicesEl.querySelectorAll('.letter-btn');
-        letterButtons.forEach(btn => btn.disabled = true);
-        renderGarden();
-        // Persist updated stage
-        saveProgress();
-        nextBtn.style.display = 'inline-block';
-    }
-
-    // Next button event
-    nextBtn.addEventListener('click', () => {
-        showQuestion();
-    });
-
-    // Initial render
-    renderGarden();
-    showQuestion();
+    // Start review on page load
+    startReview();
     </script>
 </body>
 </html>

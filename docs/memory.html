@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelime Bahçesi Oyunu</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hafıza Eşleştirme Oyunu</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -16,140 +16,75 @@
             min-height: 100vh;
         }
         header {
-            background-color: #4caf50;
+            background-color: #3b82f6;
             color: white;
             padding: 1rem;
             text-align: center;
         }
         main {
             flex: 1;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            padding: 1rem;
-            gap: 1.5rem;
         }
-        .garden {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            justify-content: center;
+        #memory-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.75rem;
             max-width: 600px;
+            width: 100%;
+            margin-top: 1rem;
         }
-        .plant {
-            width: 70px;
+        .memory-card {
+            background-color: #e0e0e0;
+            border-radius: 8px;
             height: 70px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            background-color: #fafafa;
-        }
-        .question-area {
-            text-align: center;
-            margin-top: 1rem;
-        }
-        .choices {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        .choice-btn {
-            padding: 0.7rem 1.2rem;
-            font-size: 1rem;
-            border-radius: 8px;
-            border: none;
             cursor: pointer;
-            background-color: #e0e0e0;
+            font-size: 1rem;
             transition: background-color 0.2s;
+            user-select: none;
         }
-        .choice-btn:hover {
-            background-color: #ccc;
-        }
-        .choice-btn.correct {
+        .memory-card.flipped {
             background-color: #8bc34a;
             color: white;
         }
-        .choice-btn.wrong {
-            background-color: #e57373;
-            color: white;
-        }
-        .letter-btn {
-            padding: 0.7rem 1rem;
-            font-size: 1rem;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            background-color: #e0e0e0;
-            transition: background-color 0.2s;
-        }
-        .letter-btn:hover {
-            background-color: #ccc;
-        }
-        .letter-btn.used {
-            background-color: #bdbdbd;
+        .memory-card.matched {
+            background-color: #cfd8dc;
+            color: #607d8b;
             cursor: default;
         }
-        .answer-area {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
+        .info {
             margin-top: 1rem;
-            flex-wrap: wrap;
+            text-align: center;
         }
-        .answer-slot {
-            width: 40px;
-            height: 40px;
-            border: 1px dashed #ccc;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            background-color: #fafafa;
-        }
-        .next-btn {
-            margin-top: 1rem;
-            padding: 0.8rem 1.5rem;
+        .return-btn {
+            margin-top: 2rem;
+            padding: 0.6rem 1.2rem;
             font-size: 1rem;
             border-radius: 8px;
             border: none;
+            background-color: #3b82f6;
+            color: white;
             cursor: pointer;
-            background-color: #4caf50;
-            color: white;
-        }
-        footer {
-            background-color: #4caf50;
-            color: white;
-            text-align: center;
-            padding: 0.5rem;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Kelime Bahçesi Oyunu</h1>
+        <h1>Hafıza Eşleştirme Oyunu</h1>
     </header>
     <main>
-        <section class="garden" id="garden"></section>
-        <div class="question-area" id="questionArea">
-            <h2 id="question"></h2>
-            <div class="choices" id="choices"></div>
-            <button class="next-btn" id="nextBtn" style="display:none;">Sonraki</button>
-        </div>
+        <p class="info">Aynı kelimenin İngilizce ve Türkçe kartlarını eşleştirin.</p>
+        <div id="memory-board"></div>
+        <button class="return-btn" onclick="goHome()">Ana Sayfaya Dön</button>
     </main>
-    <footer>
-        <p>Hedefiniz: Bahçenizdeki tüm bitkileri büyütün!</p>
-    </footer>
 
     <script>
-    // Comprehensive card data with CEFR levels. Each card has an ID, English word, Turkish translation,
-    // example sentence and CEFR level. All cards start at stage 1 by default.
+    // Same card data used in game.html (CEFR levels). Duplicated here for independence.
     const initialCards = [
         // A1 level words
         { id: 1, word: 'apple', translation: 'elma', example: 'I eat an apple every day.', level: 'A1', stage: 1 },
@@ -237,13 +172,11 @@
         { id: 80, word: 'automation', translation: 'otomasyon', example: 'Automation improves efficiency.', level: 'B2', stage: 1 },
     ];
 
-    // Load progress from localStorage or initialise with default stages
     function loadProgress() {
         const saved = localStorage.getItem('wordGardenProgress');
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                // Merge saved stages into initial cards
                 return initialCards.map(card => {
                     const savedCard = parsed.find(c => c.id === card.id);
                     return savedCard ? { ...card, stage: savedCard.stage } : { ...card };
@@ -255,17 +188,8 @@
         return initialCards.map(card => ({ ...card }));
     }
 
-    // Save current card stages to localStorage
-    function saveProgress() {
-        localStorage.setItem('wordGardenProgress', JSON.stringify(cards));
-    }
-
-    // Global cards array populated on load
-    let cards = loadProgress();
-
     /**
      * Load user settings (level selection and daily goal) from localStorage.
-     * Returns an object with properties `level` and `dailyGoal`.
      */
     function loadSettings() {
         const saved = localStorage.getItem('wordGardenSettings');
@@ -278,54 +202,15 @@
         }
         return { level: 'All', dailyGoal: 10 };
     }
-
-    // Icons representing plant growth stages
-    const stageIcons = {
-        1: "🌱", // seed
-        2: "🌿", // sprout
-        3: "🌳", // tree
-        4: "🍎", // fruit
-        5: "🌲"  // mature tree
-    };
-
-    let currentCard = null;
-    let answered = false;
-    let userInput = [];
-    let targetWord = '';
-
-    const gardenEl = document.getElementById('garden');
-    const questionEl = document.getElementById('question');
-    const choicesEl = document.getElementById('choices');
-    const nextBtn = document.getElementById('nextBtn');
-
-    /**
-     * Render garden icons based on card stages.
-     */
-    function renderGarden() {
-        gardenEl.innerHTML = '';
-        cards.forEach(card => {
-            const div = document.createElement('div');
-            div.className = 'plant';
-            div.textContent = stageIcons[card.stage];
-            div.title = `${card.word} (Seviye ${card.stage})`;
-            gardenEl.appendChild(div);
-        });
+    function saveProgress(cards) {
+        localStorage.setItem('wordGardenProgress', JSON.stringify(cards));
     }
 
-    /**
-     * Choose a random card that hasn't reached the maximum stage.
-     */
-    function getRandomCard() {
-        const settings = loadSettings();
-        // Filter cards by stage and selected level
-        const dueCards = cards.filter(c => c.stage < 5 && (settings.level === 'All' || c.level === settings.level));
-        if (dueCards.length === 0) return null;
-        return dueCards[Math.floor(Math.random() * dueCards.length)];
-    }
+    let cards = loadProgress();
+    let firstFlip = null;
+    let secondFlip = null;
+    let busy = false;
 
-    /**
-     * Utility to shuffle array elements (Fisher-Yates).
-     */
     function shuffleArray(array) {
         const arr = array.slice();
         for (let i = arr.length - 1; i > 0; i--) {
@@ -335,179 +220,89 @@
         return arr;
     }
 
-    /**
-     * Show question based on current card stage.
-     * Stage 1: multiple choice translation (English -> Turkish)
-     * Stage 2: unscramble the translation
-     * Stage 3: unscramble the English word
-     * Stage 4+: review message (no question)
-     */
-    function showQuestion() {
-        answered = false;
-        userInput = [];
-        currentCard = getRandomCard();
-        // Reset UI areas
-        choicesEl.innerHTML = '';
-        questionEl.innerHTML = '';
-        nextBtn.style.display = 'none';
-        removeAnswerArea();
+    function setupMemoryGame() {
+        const board = document.getElementById('memory-board');
+        board.innerHTML = '';
+        // Select eight random cards that are not yet mature (stage < 5)
+        const settings = loadSettings();
+        // Filter available cards by stage and selected level
+        const available = cards.filter(c => c.stage < 5 && (settings.level === 'All' || c.level === settings.level));
+        const selected = shuffleArray(available).slice(0, 8);
+        // Build pair array with word and translation
+        let pairs = [];
+        selected.forEach(card => {
+            pairs.push({ id: card.id, type: 'word', text: card.word });
+            pairs.push({ id: card.id, type: 'translation', text: card.translation });
+        });
+        pairs = shuffleArray(pairs);
+        pairs.forEach((item, idx) => {
+            const div = document.createElement('div');
+            div.className = 'memory-card';
+            div.dataset.cardId = item.id;
+            div.dataset.type = item.type;
+            div.dataset.text = item.text;
+            div.textContent = '';
+            div.onclick = () => handleFlip(div);
+            board.appendChild(div);
+        });
+    }
 
-        if (!currentCard) {
-            questionEl.textContent = 'Tebrikler! Tüm kelimeleri öğrendiniz.';
+    function handleFlip(cardEl) {
+        if (busy || cardEl.classList.contains('matched') || cardEl.classList.contains('flipped')) return;
+        cardEl.classList.add('flipped');
+        cardEl.textContent = cardEl.dataset.text;
+        if (!firstFlip) {
+            firstFlip = cardEl;
             return;
         }
-
-        // Determine question type based on stage
-        if (currentCard.stage === 1) {
-            setupTranslationQuestion();
-        } else if (currentCard.stage === 2) {
-            setupUnscrambleQuestion(currentCard.translation, 'Türkçe karşılığını harfleri sıraya koyarak oluşturun');
-        } else if (currentCard.stage === 3) {
-            setupUnscrambleQuestion(currentCard.word, 'İngilizce kelimeyi harfleri sıraya koyarak oluşturun');
-        } else {
-            // Stage 4 and 5: simple acknowledgement
-            questionEl.textContent = `"${currentCard.word}" kelimesi bahçenizde olgunlaşmış durumda.`;
-            nextBtn.style.display = 'inline-block';
-        }
-    }
-
-    /**
-     * Create a multiple-choice translation question.
-     */
-    function setupTranslationQuestion() {
-        questionEl.textContent = `"${currentCard.word}" kelimesinin çevirisi nedir?`;
-        // include correct translation and three random others
-        const translations = cards.filter(c => c.id !== currentCard.id).map(c => c.translation);
-        const options = shuffleArray(translations).slice(0, 3);
-        options.push(currentCard.translation);
-        const finalChoices = shuffleArray(options);
-        finalChoices.forEach(choice => {
-            const btn = document.createElement('button');
-            btn.className = 'choice-btn';
-            btn.textContent = choice;
-            btn.onclick = () => handleMultipleChoice(btn, choice);
-            choicesEl.appendChild(btn);
-        });
-    }
-
-    /**
-     * Handle answer selection for multiple choice.
-     */
-    function handleMultipleChoice(button, choice) {
-        if (answered) return;
-        answered = true;
-        const buttons = choicesEl.querySelectorAll('.choice-btn');
-        buttons.forEach(btn => btn.disabled = true);
-        if (choice === currentCard.translation) {
-            button.classList.add('correct');
-            currentCard.stage = Math.min(currentCard.stage + 1, 5);
-        } else {
-            button.classList.add('wrong');
-            currentCard.stage = Math.max(currentCard.stage - 1, 1);
-        }
-        renderGarden();
-        // Persist updated stage
-        saveProgress();
-        nextBtn.style.display = 'inline-block';
-    }
-
-    /**
-     * Create an unscramble question for the given target word.
-     * @param {string} word - the word to unscramble
-     * @param {string} prompt - the prompt to display to the user
-     */
-    function setupUnscrambleQuestion(word, prompt) {
-        targetWord = word;
-        questionEl.textContent = prompt;
-        const letters = shuffleArray(word.split(''));
-        // Create answer area slots
-        const answerArea = document.createElement('div');
-        answerArea.className = 'answer-area';
-        answerArea.id = 'answerArea';
-        for (let i = 0; i < word.length; i++) {
-            const slot = document.createElement('div');
-            slot.className = 'answer-slot';
-            slot.textContent = '';
-            answerArea.appendChild(slot);
-        }
-        choicesEl.parentNode.insertBefore(answerArea, nextBtn);
-        // Create letter buttons
-        letters.forEach(letter => {
-            const btn = document.createElement('button');
-            btn.className = 'letter-btn';
-            btn.textContent = letter;
-            btn.onclick = () => handleLetterClick(btn, letter);
-            choicesEl.appendChild(btn);
-        });
-    }
-
-    /**
-     * Remove existing answer area if present.
-     */
-    function removeAnswerArea() {
-        const existing = document.getElementById('answerArea');
-        if (existing) {
-            existing.parentNode.removeChild(existing);
-        }
-    }
-
-    /**
-     * Handle letter selection for unscramble questions.
-     */
-    function handleLetterClick(button, letter) {
-        if (answered || button.classList.contains('used')) return;
-        button.classList.add('used');
-        userInput.push(letter);
-        // Fill next empty slot
-        const slots = document.querySelectorAll('.answer-slot');
-        for (const slot of slots) {
-            if (slot.textContent === '') {
-                slot.textContent = letter;
-                break;
+        secondFlip = cardEl;
+        busy = true;
+        // Check for match
+        const match = firstFlip.dataset.cardId === secondFlip.dataset.cardId && firstFlip.dataset.type !== secondFlip.dataset.type;
+        if (match) {
+            // Mark matched
+            firstFlip.classList.add('matched');
+            secondFlip.classList.add('matched');
+            // Update stage for the underlying card
+            const id = parseInt(firstFlip.dataset.cardId);
+            const card = cards.find(c => c.id === id);
+            if (card) {
+                card.stage = Math.min(card.stage + 1, 5);
+                saveProgress(cards);
             }
-        }
-        // Check if answer complete
-        if (userInput.length === targetWord.length) {
-            checkUnscrambleAnswer();
-        }
-    }
-
-    /**
-     * Check unscramble answer and update stage.
-     */
-    function checkUnscrambleAnswer() {
-        answered = true;
-        const correct = userInput.join('') === targetWord;
-        const slots = document.querySelectorAll('.answer-slot');
-        // Highlight slots accordingly
-        if (correct) {
-            slots.forEach(slot => {
-                slot.style.backgroundColor = '#c8e6c9';
-            });
-            currentCard.stage = Math.min(currentCard.stage + 1, 5);
+            resetFlips(true);
         } else {
-            slots.forEach(slot => {
-                slot.style.backgroundColor = '#ffcdd2';
-            });
-            currentCard.stage = Math.max(currentCard.stage - 1, 1);
+            // Not a match: flip back after delay
+            setTimeout(() => {
+                firstFlip.classList.remove('flipped');
+                secondFlip.classList.remove('flipped');
+                firstFlip.textContent = '';
+                secondFlip.textContent = '';
+                resetFlips(false);
+            }, 800);
         }
-        // disable remaining buttons
-        const letterButtons = choicesEl.querySelectorAll('.letter-btn');
-        letterButtons.forEach(btn => btn.disabled = true);
-        renderGarden();
-        // Persist updated stage
-        saveProgress();
-        nextBtn.style.display = 'inline-block';
     }
 
-    // Next button event
-    nextBtn.addEventListener('click', () => {
-        showQuestion();
-    });
+    function resetFlips(matched) {
+        firstFlip = null;
+        secondFlip = null;
+        busy = false;
+        // Check if all cards are matched
+        const remaining = document.querySelectorAll('.memory-card:not(.matched)');
+        if (remaining.length === 0) {
+            setTimeout(() => {
+                alert('Tebrikler! Tüm eşleşmeleri tamamladınız.');
+                setupMemoryGame();
+            }, 500);
+        }
+    }
 
-    // Initial render
-    renderGarden();
-    showQuestion();
+    function goHome() {
+        window.location.href = 'index.html';
+    }
+
+    // Initialize game on load
+    setupMemoryGame();
     </script>
 </body>
 </html>
